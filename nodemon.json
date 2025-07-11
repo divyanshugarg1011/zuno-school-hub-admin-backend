@@ -1,7 +1,7 @@
 {
-  "watch": ["src", "index.ts"],
-  "ext": "ts,js",
-  "exec": "ts-node index.ts",
+  "watch": ["src"],
+  "ext": "ts,json",
+  "exec": "ts-node ./src/index.ts",
   "env": {
     "NODE_ENV": "development"
   }
