@@ -4,6 +4,9 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon --exec \"ts-node\" index.ts",
+    "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -15,5 +18,13 @@
   "bugs": {
     "url": "https://github.com/divyanshugarg1011/zuno-school-hub-admin-backend/issues"
   },
-  "homepage": "https://github.com/divyanshugarg1011/zuno-school-hub-admin-backend#readme"
+  "homepage": "https://github.com/divyanshugarg1011/zuno-school-hub-admin-backend#readme",
+  "dependencies": {
+    "nodemon": "^3.1.10"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "ts-node": "^10.9.0",
+    "@types/node": "^20.0.0"
+  }
 }
