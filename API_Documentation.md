@@ -608,6 +608,177 @@ All API responses follow this format:
 }
 ```
 
+## 11. Bulk Upload Teachers
+**POST** `/teachers/bulk-upload`
+
+**Authorization:** Required (admin)
+
+**Content-Type:** `multipart/form-data`
+
+**Request Body:**
+- `csvFile`: CSV file containing teacher data
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "totalRows": 10,
+    "successfulUploads": 8,
+    "duplicates": 1,
+    "errors": 1,
+    "uploadedTeachers": [
+      {
+        "_id": "teacher_id",
+        "teacherId": "T001",
+        "firstName": "John",
+        "lastName": "Doe",
+        "email": "john.doe@school.com",
+        // ... complete teacher object
+      }
+    ],
+    "duplicateEmails": ["existing@school.com"],
+    "validationErrors": [
+      "Row 3: Invalid email format",
+      "Row 5: Missing required field: phone"
+    ]
+  }
+}
+```
+
+**CSV Format:**
+Required columns: `teacherId`, `firstName`, `lastName`, `email`, `phone`, `dateOfBirth`, `gender`, `street`, `city`, `state`, `zipCode`, `country`, `qualifications`, `subjects`, `experience`, `joiningDate`, `salary`, `emergencyContactName`, `emergencyContactRelationship`, `emergencyContactPhone`
+
+Optional columns: `profileImage`, `bloodGroup`, `bankAccountNumber`, `bankName`, `ifscCode`
+
+**Notes:**
+- Maximum file size: 5MB
+- Duplicate emails are skipped
+- Validation errors are reported per row
+- Qualifications and subjects should be comma-separated
+- Dates should be in YYYY-MM-DD format
+
+## 12. Download CSV Template
+**GET** `/teachers/csv-template`
+
+**Authorization:** Required (admin)
+
+**Response:** CSV file with headers and sample data
+
+**Example Usage:**
+```bash
+curl -X GET http://localhost:3000/api/teachers/csv-template \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -o teacher_template.csv
+```
+
+## 13. Search Teachers
+**GET** `/teachers/search`
+
+**Query Parameters:**
+- `q`: Search query (optional) - searches in firstName, lastName, email, teacherId, phone, subjects, qualifications
+- `status`: Filter by status (optional) - 'active' or 'inactive'
+- `subject`: Filter by subject (optional)
+- `page`: Page number (default: 1)
+- `limit`: Items per page (default: 10, max: 100)
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "teachers": [
+      {
+        "_id": "teacher_id",
+        "teacherId": "T001",
+        "firstName": "John",
+        "lastName": "Doe",
+        "email": "john.doe@school.com",
+        // ... complete teacher object
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "total": 5,
+      "pages": 1
+    },
+    "query": {
+      "q": "john",
+      "status": "active",
+      "subject": "Math"
+    }
+  }
+}
+```
+
+**Example Usage:**
+```bash
+# Search for teachers with name containing "john"
+curl -X GET "http://localhost:3000/api/teachers/search?q=john" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+
+# Search for active teachers teaching Math
+curl -X GET "http://localhost:3000/api/teachers/search?status=active&subject=Math" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+## 14. Export Teachers
+**GET** `/teachers/export`
+
+**Query Parameters:**
+- `format`: Export format (optional) - 'csv' or 'json' (default: 'json')
+- `status`: Filter by status (optional) - 'active' or 'inactive'
+- `subject`: Filter by subject (optional)
+- `q`: Search query (optional) - searches in firstName, lastName, email, teacherId, phone, subjects, qualifications
+
+**Response (JSON format):**
+```json
+{
+  "success": true,
+  "data": {
+    "teachers": [
+      {
+        "_id": "teacher_id",
+        "teacherId": "T001",
+        "firstName": "John",
+        "lastName": "Doe",
+        "email": "john.doe@school.com",
+        // ... complete teacher object
+      }
+    ],
+    "exportedAt": "2024-01-01T10:00:00.000Z",
+    "totalRecords": 25,
+    "filters": {
+      "format": "json",
+      "status": "active",
+      "subject": "Math",
+      "q": "john"
+    }
+  }
+}
+```
+
+**Response (CSV format):**
+Returns a CSV file with all teacher data including:
+- Basic information (ID, name, email, phone, etc.)
+- Address details
+- Professional information (qualifications, subjects, experience, salary)
+- Emergency contact information
+- Bank details (if available)
+
+**Example Usage:**
+```bash
+# Export all active teachers as CSV
+curl -X GET "http://localhost:3000/api/teachers/export?format=csv&status=active" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -o teachers_export.csv
+
+# Export teachers teaching Math as JSON
+curl -X GET "http://localhost:3000/api/teachers/export?format=json&subject=Math" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
 ---
 
 # Attendance APIs
