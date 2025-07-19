@@ -7,12 +7,14 @@ A comprehensive backend API for the Zuno School Hub Admin system, built with Nod
 - **Authentication & Authorization**: JWT-based authentication with role-based access control
 - **Student Management**: Complete CRUD operations for student records
 - **Teacher Management**: Teacher profile management and assignment tracking
+- **Bulk Upload**: CSV bulk upload functionality for both students and teachers with validation and error reporting
 - **Attendance Tracking**: Mark and track student attendance with detailed reporting
 - **Homework Management**: Create, assign, and grade homework assignments
 - **Fee Management**: Track fee payments and generate receipts
 - **Communication System**: Announcements, notices, and messaging
 - **Reports & Analytics**: Comprehensive reporting for all modules
 - **File Upload**: Support for profile pictures and document uploads
+- **Search & Export**: Advanced search and export functionality for students and teachers
 - **Security**: Rate limiting, input validation, and secure password hashing
 
 ## Technology Stack
@@ -65,3 +67,44 @@ npm start
 ```
 
 The server will start on `http://localhost:3000`.
+
+## Bulk Upload Feature
+
+The system now supports bulk upload of both teacher and student data via CSV files. This feature includes:
+
+### Features:
+- **CSV Template Download**: Get properly formatted CSV templates for both students and teachers
+- **Bulk Validation**: Comprehensive validation of all data with detailed error reporting
+- **Duplicate Detection**: Automatic detection and handling of duplicates
+  - **Teachers**: Duplicate email detection
+  - **Students**: Duplicate student ID and roll number detection (per class-section)
+- **Error Reporting**: Detailed error reporting for each row
+- **Partial Success**: Successfully process valid records even if some fail
+- **Search & Export**: Advanced search and export functionality
+
+### Usage:
+**Teachers:**
+1. **Download Template**: `GET /api/teachers/csv-template`
+2. **Upload CSV**: `POST /api/teachers/bulk-upload`
+3. **Search**: `GET /api/teachers/search`
+4. **Export**: `GET /api/teachers/export`
+
+**Students:**
+1. **Download Template**: `GET /api/students/csv-template`
+2. **Upload CSV**: `POST /api/students/bulk-upload`
+3. **Search**: `GET /api/students/search`
+4. **Export**: `GET /api/students/export`
+
+### CSV Formats:
+**Teacher CSV:** teacherId, firstName, lastName, email, phone, dateOfBirth, gender, address fields, qualifications, subjects, experience, joiningDate, salary, emergencyContact fields, bankDetails (optional)
+
+**Student CSV:** studentId, firstName, lastName, email, phone, dateOfBirth, gender, address fields, parentInfo fields, class, section, rollNumber, admissionDate, emergencyContact fields, medicalConditions (optional)
+
+### Demo:
+Demo HTML pages are available for testing the bulk upload functionality:
+- Teachers: `public/teacher-bulk-upload-demo.html`
+- Students: Similar demo can be created for student uploads
+
+For detailed documentation:
+- [Teacher Bulk Upload Documentation](docs/teacher-bulk-upload.md)
+- [Student Bulk Upload Documentation](docs/student-bulk-upload.md)

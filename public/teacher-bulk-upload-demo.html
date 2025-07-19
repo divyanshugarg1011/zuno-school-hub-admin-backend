@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Bulk Upload - Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .upload-section {
+            border: 2px dashed #ccc;
+            padding: 30px;
+            text-align: center;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        .upload-section.dragover {
+            border-color: #007bff;
+            background-color: #f8f9fa;
+        }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        .btn-secondary:hover {
+            background-color: #545b62;
+        }
+        .alert {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: #007bff;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        .results {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Teacher Bulk Upload - Demo</h1>
+    
+    <div class="upload-section" id="uploadSection">
+        <h3>Upload Teachers CSV File</h3>
+        <p>Drag and drop your CSV file here or click to select</p>
+        <input type="file" id="csvFile" accept=".csv" style="display: none;">
+        <button class="btn" onclick="document.getElementById('csvFile').click()">
+            Choose CSV File
+        </button>
+        <button class="btn btn-secondary" onclick="downloadTemplate()">
+            Download Template
+        </button>
+        <div id="fileName" class="hidden"></div>
+        <button class="btn" id="uploadBtn" onclick="uploadFile()" style="display: none;">
+            Upload Teachers
+        </button>
+    </div>
+
+    <div class="progress-bar" id="progressBar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div id="alertContainer"></div>
+
+    <div id="results" class="results hidden">
+        <h3>Upload Results</h3>
+        <div id="resultStats"></div>
+        <div id="resultDetails"></div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = 'http://localhost:3000/api';
+        const TOKEN = 'your-admin-token-here'; // Replace with actual token
+
+        // File upload handling
+        const csvFile = document.getElementById('csvFile');
+        const uploadSection = document.getElementById('uploadSection');
+        const fileName = document.getElementById('fileName');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const alertContainer = document.getElementById('alertContainer');
+        const results = document.getElementById('results');
+
+        // File selection
+        csvFile.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                fileName.textContent = `Selected: ${file.name}`;
+                fileName.classList.remove('hidden');
+                uploadBtn.style.display = 'inline-block';
+            }
+        });
+
+        // Drag and drop
+        uploadSection.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadSection.classList.add('dragover');
+        });
+
+        uploadSection.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+        });
+
+        uploadSection.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.name.endsWith('.csv')) {
+                    csvFile.files = files;
+                    fileName.textContent = `Selected: ${file.name}`;
+                    fileName.classList.remove('hidden');
+                    uploadBtn.style.display = 'inline-block';
+                } else {
+                    showAlert('Please select a CSV file.', 'error');
+                }
+            }
+        });
+
+        // Upload file
+        async function uploadFile() {
+            const file = csvFile.files[0];
+            if (!file) {
+                showAlert('Please select a CSV file.', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('csvFile', file);
+
+            try {
+                showProgress(true);
+                hideAlert();
+                
+                const response = await fetch(`${API_BASE_URL}/teachers/bulk-upload`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${TOKEN}`
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    showAlert('Upload completed successfully!', 'success');
+                    showResults(data.data);
+                } else {
+                    showAlert(data.error || 'Upload failed. Please try again.', 'error');
+                }
+            } catch (error) {
+                showAlert('Network error. Please check your connection and try again.', 'error');
+                console.error('Upload error:', error);
+            } finally {
+                showProgress(false);
+            }
+        }
+
+        // Download template
+        async function downloadTemplate() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/teachers/csv-template`, {
+                    headers: {
+                        'Authorization': `Bearer ${TOKEN}`
+                    }
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'teacher_upload_template.csv';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    showAlert('Template downloaded successfully!', 'success');
+                } else {
+                    showAlert('Failed to download template.', 'error');
+                }
+            } catch (error) {
+                showAlert('Network error while downloading template.', 'error');
+                console.error('Download error:', error);
+            }
+        }
+
+        // Show alert
+        function showAlert(message, type) {
+            alertContainer.innerHTML = `
+                <div class="alert alert-${type}">
+                    ${message}
+                </div>
+            `;
+        }
+
+        // Hide alert
+        function hideAlert() {
+            alertContainer.innerHTML = '';
+        }
+
+        // Show progress
+        function showProgress(show) {
+            if (show) {
+                progressBar.style.display = 'block';
+                progressFill.style.width = '100%';
+            } else {
+                progressBar.style.display = 'none';
+                progressFill.style.width = '0%';
+            }
+        }
+
+        // Show results
+        function showResults(data) {
+            const stats = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                    <div><strong>Total Rows:</strong> ${data.totalRows}</div>
+                    <div><strong>Successful Uploads:</strong> ${data.successfulUploads}</div>
+                    <div><strong>Duplicates:</strong> ${data.duplicates}</div>
+                    <div><strong>Errors:</strong> ${data.errors}</div>
+                </div>
+            `;
+
+            let details = '';
+            
+            if (data.duplicateEmails && data.duplicateEmails.length > 0) {
+                details += `
+                    <h4>Duplicate Emails (Skipped):</h4>
+                    <ul>
+                        ${data.duplicateEmails.map(email => `<li>${email}</li>`).join('')}
+                    </ul>
+                `;
+            }
+
+            if (data.validationErrors && data.validationErrors.length > 0) {
+                details += `
+                    <h4>Validation Errors:</h4>
+                    <ul>
+                        ${data.validationErrors.map(error => `<li>${error}</li>`).join('')}
+                    </ul>
+                `;
+            }
+
+            if (data.uploadedTeachers && data.uploadedTeachers.length > 0) {
+                details += `
+                    <h4>Successfully Uploaded Teachers:</h4>
+                    <ul>
+                        ${data.uploadedTeachers.map(teacher => 
+                            `<li>${teacher.firstName} ${teacher.lastName} (${teacher.email})</li>`
+                        ).join('')}
+                    </ul>
+                `;
+            }
+
+            document.getElementById('resultStats').innerHTML = stats;
+            document.getElementById('resultDetails').innerHTML = details;
+            results.classList.remove('hidden');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!TOKEN || TOKEN === 'your-admin-token-here') {
+                showAlert('Please set your admin token in the JavaScript code.', 'error');
+            }
+        });
+    </script>
+</body>
+</html>
