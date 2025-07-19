@@ -343,21 +343,147 @@ All API responses follow this format:
 **GET** `/students/search`
 
 **Query Parameters:**
-- `q`: Search query
-- `class`: Filter by class
-- `section`: Filter by section
+- `q`: Search query (optional) - searches in firstName, lastName, studentId, rollNumber, email, phone, parent names
+- `class`: Filter by class (optional)
+- `section`: Filter by section (optional)  
+- `status`: Filter by status (optional) - 'active' or 'inactive'
+- `page`: Page number (default: 1)
+- `limit`: Items per page (default: 10, max: 100)
 
 **Response:**
 ```json
 {
   "success": true,
-  "data": [
-    // ... array of matching students
-  ]
+  "data": {
+    "students": [
+      {
+        "_id": "student_id",
+        "studentId": "STU001",
+        "firstName": "John",
+        "lastName": "Doe",
+        "email": "john.doe@student.com",
+        // ... complete student object
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "total": 5,
+      "pages": 1
+    },
+    "query": {
+      "q": "john",
+      "class": "Grade 5",
+      "section": "A",
+      "status": "active"
+    }
+  }
 }
 ```
 
-## 8. Upload Student Photo
+## 8. Export Students
+**GET** `/students/export`
+
+**Query Parameters:**
+- `format`: Export format (optional) - 'csv' or 'json' (default: 'json')
+- `class`: Filter by class (optional)
+- `section`: Filter by section (optional)
+- `status`: Filter by status (optional) - 'active' or 'inactive'
+- `q`: Search query (optional)
+
+**Response (JSON format):**
+```json
+{
+  "success": true,
+  "data": {
+    "students": [
+      {
+        "_id": "student_id",
+        "studentId": "STU001",
+        "firstName": "John",
+        "lastName": "Doe",
+        // ... complete student object
+      }
+    ],
+    "exportedAt": "2024-01-01T10:00:00.000Z",
+    "totalRecords": 25,
+    "filters": {
+      "format": "json",
+      "class": "Grade 5",
+      "section": "A",
+      "status": "active"
+    }
+  }
+}
+```
+
+**Response (CSV format):**
+Returns a CSV file with all student data including basic information, address, parent details, academic information, and emergency contacts.
+
+## 9. Bulk Upload Students
+**POST** `/students/bulk-upload`
+
+**Authorization:** Required (admin, staff)
+
+**Content-Type:** `multipart/form-data`
+
+**Request Body:**
+- `csvFile`: CSV file containing student data
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "totalRows": 10,
+    "successfulUploads": 7,
+    "duplicateStudentIds": 2,
+    "duplicateRollNumbers": 1,
+    "errors": 0,
+    "uploadedStudents": [
+      {
+        "_id": "student_id",
+        "studentId": "STU001",
+        "firstName": "John",
+        "lastName": "Doe",
+        // ... complete student object
+      }
+    ],
+    "duplicateStudentIdsList": ["STU001", "STU002"],
+    "duplicateRollNumbersList": ["001 (Grade 5-A)"],
+    "validationErrors": []
+  }
+}
+```
+
+**CSV Format:**
+Required columns: `studentId`, `firstName`, `lastName`, `dateOfBirth`, `gender`, `street`, `city`, `state`, `zipCode`, `country`, `fatherName`, `motherName`, `parentContactNumber`, `class`, `section`, `rollNumber`, `admissionDate`, `emergencyContactName`, `emergencyContactRelationship`, `emergencyContactPhone`
+
+Optional columns: `email`, `phone`, `guardianName`, `parentEmail`, `profileImage`, `bloodGroup`, `medicalConditions`
+
+**Notes:**
+- Maximum file size: 5MB
+- Student IDs must be unique across the system
+- Roll numbers must be unique within the same class and section
+- Validation errors are reported per row
+- Medical conditions should be comma-separated
+- Dates should be in YYYY-MM-DD format
+
+## 10. Download Student CSV Template
+**GET** `/students/csv-template`
+
+**Authorization:** Required (admin, staff)
+
+**Response:** CSV file with headers and sample data
+
+**Example Usage:**
+```bash
+curl -X GET http://localhost:3000/api/students/csv-template \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -o student_template.csv
+```
+
+## 11. Upload Student Photo
 **POST** `/students/:id/upload-photo`
 
 **Authorization:** Required (admin, staff)
@@ -368,9 +494,7 @@ All API responses follow this format:
 ```json
 {
   "success": true,
-  "data": {
-    "photoUrl": "path/to/photo.jpg"
-  }
+  "message": "Photo uploaded successfully"
 }
 ```
 

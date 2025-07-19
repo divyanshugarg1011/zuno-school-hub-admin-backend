@@ -67,6 +67,23 @@ export const teacherExportSchema = Joi.object({
   q: Joi.string().optional()
 });
 
+export const studentSearchSchema = Joi.object({
+  q: Joi.string().optional(),
+  class: Joi.string().optional(),
+  section: Joi.string().optional(),
+  status: Joi.string().valid('active', 'inactive').optional(),
+  page: Joi.number().integer().min(1).default(1),
+  limit: Joi.number().integer().min(1).max(100).default(10)
+});
+
+export const studentExportSchema = Joi.object({
+  format: Joi.string().valid('csv', 'json').default('json'),
+  class: Joi.string().optional(),
+  section: Joi.string().optional(),
+  status: Joi.string().valid('active', 'inactive').optional(),
+  q: Joi.string().optional()
+});
+
 export const userCreateSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().min(6).required(),
