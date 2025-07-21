@@ -171,8 +171,8 @@ export const feeSearchSchema = Joi.object({
   q: Joi.string().optional(),
   status: Joi.string().valid('pending', 'paid', 'overdue', 'partial').optional(),
   feeType: Joi.string().valid('tuition', 'transport', 'library', 'sports', 'examination', 'admission', 'other').optional(),
-  studentId: Joi.string().hex().length(24).optional(),
-  academicYear: Joi.string().pattern(/^\d{4}-\d{4}$/).optional(),
+  studentId: Joi.string().optional(),
+  academicYear: Joi.string().pattern(/^\d{4}-\d{2,4}$/).optional(),
   month: Joi.string().valid('january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december').optional(),
   term: Joi.string().optional(),
   page: Joi.number().integer().min(1).default(1),
@@ -183,24 +183,24 @@ export const feeExportSchema = Joi.object({
   format: Joi.string().valid('csv', 'json').default('json'),
   status: Joi.string().valid('pending', 'paid', 'overdue', 'partial').optional(),
   feeType: Joi.string().valid('tuition', 'transport', 'library', 'sports', 'examination', 'admission', 'other').optional(),
-  studentId: Joi.string().hex().length(24).optional(),
-  academicYear: Joi.string().pattern(/^\d{4}-\d{4}$/).optional(),
+  studentId: Joi.string().optional(),
+  academicYear: Joi.string().pattern(/^\d{4}-\d{2,4}$/).optional(),
   month: Joi.string().valid('january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december').optional(),
   term: Joi.string().optional(),
   q: Joi.string().optional()
 });
 
 export const feeCreateSchema = Joi.object({
-  studentId: Joi.string().hex().length(24).required(),
+  studentId: Joi.string().required(),
   feeType: Joi.string().valid('tuition', 'transport', 'library', 'sports', 'examination', 'admission', 'other').required(),
   amount: Joi.number().positive().required(),
   dueDate: Joi.date().required(),
   description: Joi.string().optional(),
-  academicYear: Joi.string().pattern(/^\d{4}-\d{4}$/).required(),
+  academicYear: Joi.string().pattern(/^\d{4}-\d{2,4}$/).required(),
   month: Joi.string().valid('january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december').optional(),
   term: Joi.string().optional()
 });
 
 export const studentIdSchema = Joi.object({
-  studentId: Joi.string().hex().length(24).required()
+  studentId: Joi.string().required()
 });
