@@ -26,7 +26,16 @@ const csvStorage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, `teachers-${uniqueSuffix}.csv`);
+    // Determine file type based on the route
+    let prefix = 'upload';
+    if (req.originalUrl.includes('/teachers/')) {
+      prefix = 'teachers';
+    } else if (req.originalUrl.includes('/students/')) {
+      prefix = 'students';
+    } else if (req.originalUrl.includes('/fees/')) {
+      prefix = 'fees';
+    }
+    cb(null, `${prefix}-${uniqueSuffix}.csv`);
   }
 });
 

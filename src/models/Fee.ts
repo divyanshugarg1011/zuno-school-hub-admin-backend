@@ -3,13 +3,14 @@ import { ObjectId } from 'mongodb';
 export interface Fee {
   _id?: ObjectId;
   studentId: ObjectId;
-  feeType: 'tuition' | 'transport' | 'library' | 'sports' | 'examination' | 'other';
+  feeType: 'tuition' | 'transport' | 'library' | 'sports' | 'examination' | 'admission' | 'other';
   amount: number;
   dueDate: Date;
   status: 'pending' | 'paid' | 'overdue' | 'partial';
   description?: string;
   academicYear: string;
   month?: string;
+  term?: string;
   payments?: Array<{
     amount: number;
     method: 'cash' | 'card' | 'online' | 'check' | 'bank_transfer';
@@ -43,22 +44,24 @@ export interface FeePayment {
 
 export interface FeeCreateDto {
   studentId: string;
-  feeType: 'tuition' | 'transport' | 'library' | 'sports' | 'examination' | 'other';
+  feeType: 'tuition' | 'transport' | 'library' | 'sports' | 'examination' | 'admission' | 'other';
   amount: number;
   dueDate: Date;
   description?: string;
   academicYear: string;
   month?: string;
+  term?: string;
 }
 
 export interface FeeUpdateDto {
-  feeType?: 'tuition' | 'transport' | 'library' | 'sports' | 'examination' | 'other';
+  feeType?: 'tuition' | 'transport' | 'library' | 'sports' | 'examination' | 'admission' | 'other';
   amount?: number;
   dueDate?: Date;
   status?: 'pending' | 'paid' | 'overdue' | 'partial';
   description?: string;
   academicYear?: string;
   month?: string;
+  term?: string;
 }
 
 export interface FeePaymentCreateDto {
@@ -77,4 +80,30 @@ export interface FeeReport {
   paidAmount: number;
   pendingAmount: number;
   overdueAmount: number;
+}
+
+export interface FeeWithStudent extends Fee {
+  student?: {
+    _id: ObjectId;
+    studentId: string;
+    firstName: string;
+    lastName: string;
+    email?: string;
+    phone?: string;
+    class: string;
+    section: string;
+    rollNumber: string;
+    parentInfo: {
+      fatherName: string;
+      motherName: string;
+      contactNumber: string;
+      email?: string;
+    };
+    isActive: boolean;
+  };
+  // Calculated fields
+  totalDue?: number;
+  totalPaid?: number;
+  remainingAmount?: number;
+  studentName?: string;
 }
