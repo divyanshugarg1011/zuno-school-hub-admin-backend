@@ -1,7 +1,0 @@
-studentId,feeType,amount,dueDate,academicYear,month,description
-507f1f77bcf86cd799439011,tuition,5000,2024-01-15,2023-2024,january,Monthly tuition fee for Grade 10
-507f1f77bcf86cd799439012,transport,1500,2024-01-15,2023-2024,january,Monthly transport fee
-507f1f77bcf86cd799439013,library,500,2024-01-15,2023-2024,,Annual library fee
-507f1f77bcf86cd799439014,sports,2000,2024-01-15,2023-2024,,Annual sports activities fee
-507f1f77bcf86cd799439011,examination,1000,2024-03-01,2023-2024,,Annual examination fee
-507f1f77bcf86cd799439012,tuition,5000,2024-02-15,2023-2024,february,Monthly tuition fee for Grade 9
