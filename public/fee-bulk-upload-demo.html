@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fee Bulk Upload Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        .btn-secondary:hover {
+            background-color: #545b62;
+        }
+        input[type="file"] {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+            max-width: 400px;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .instructions {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .csv-format {
+            font-family: monospace;
+            font-size: 12px;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Fee Bulk Upload Demo</h1>
+        
+        <div class="instructions">
+            <h3>How to use:</h3>
+            <ol>
+                <li>Download the CSV template using the button below</li>
+                <li>Fill in your fee data following the template format</li>
+                <li>Upload the completed CSV file</li>
+                <li>Review the upload results</li>
+            </ol>
+        </div>
+
+        <div class="section">
+            <h3>Step 1: Download CSV Template</h3>
+            <p>Download the template to see the required format and sample data.</p>
+            <button class="btn" onclick="downloadTemplate()">Download CSV Template</button>
+        </div>
+
+        <div class="section">
+            <h3>Step 2: CSV Format</h3>
+            <p>Your CSV file should have the following columns:</p>
+            <div class="csv-format">
+studentId,feeType,amount,dueDate,academicYear,month,description
+507f1f77bcf86cd799439011,tuition,5000,2024-01-15,2023-2024,january,Monthly tuition fee
+507f1f77bcf86cd799439012,transport,1500,2024-01-15,2023-2024,january,Monthly transport fee
+507f1f77bcf86cd799439013,library,500,2024-01-15,2023-2024,,Annual library fee
+            </div>
+            
+            <h4>Field Descriptions:</h4>
+            <ul>
+                <li><strong>studentId</strong>: 24-character MongoDB ObjectId (required)</li>
+                <li><strong>feeType</strong>: tuition, transport, library, sports, examination, or other (required)</li>
+                <li><strong>amount</strong>: Positive number (required)</li>
+                <li><strong>dueDate</strong>: Date in YYYY-MM-DD format (required)</li>
+                <li><strong>academicYear</strong>: Format YYYY-YYYY like 2023-2024 (required)</li>
+                <li><strong>month</strong>: Month name (optional, for monthly fees)</li>
+                <li><strong>description</strong>: Additional details (optional)</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h3>Step 3: Upload CSV File</h3>
+            <input type="file" id="csvFile" accept=".csv" />
+            <br><br>
+            <button class="btn" onclick="uploadFile()">Upload Fees</button>
+            <button class="btn btn-secondary" onclick="clearResults()">Clear Results</button>
+        </div>
+
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api/fees';
+
+        function downloadTemplate() {
+            window.open(`${API_BASE}/csv-template`, '_blank');
+        }
+
+        async function uploadFile() {
+            const fileInput = document.getElementById('csvFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showResult('Please select a CSV file first.', 'error');
+                return;
+            }
+
+            if (!file.name.toLowerCase().endsWith('.csv')) {
+                showResult('Please select a valid CSV file.', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('csvFile', file);
+
+            try {
+                showResult('Uploading and processing file...', 'success');
+                
+                const response = await fetch(`${API_BASE}/bulk-upload`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        // Note: In a real application, you would include authentication headers here
+                        // 'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showUploadResults(result);
+                } else {
+                    showResult(`Upload failed: ${result.error || 'Unknown error'}`, 'error');
+                }
+            } catch (error) {
+                showResult(`Network error: ${error.message}`, 'error');
+            }
+        }
+
+        function showUploadResults(result) {
+            const data = result.data;
+            let html = '<h3>Upload Results</h3>';
+            
+            html += `<p><strong>Total Rows Processed:</strong> ${data.totalRows}</p>`;
+            html += `<p><strong>Successful Uploads:</strong> ${data.successfulUploads}</p>`;
+            html += `<p><strong>Duplicates Found:</strong> ${data.duplicates}</p>`;
+            html += `<p><strong>Errors:</strong> ${data.errors}</p>`;
+
+            if (data.uploadedFees && data.uploadedFees.length > 0) {
+                html += '<h4>Successfully Uploaded Fees:</h4>';
+                html += '<pre>' + JSON.stringify(data.uploadedFees, null, 2) + '</pre>';
+            }
+
+            if (data.duplicateFees && data.duplicateFees.length > 0) {
+                html += '<h4>Duplicate Fees (Skipped):</h4>';
+                html += '<ul>';
+                data.duplicateFees.forEach(duplicate => {
+                    html += `<li>${duplicate}</li>`;
+                });
+                html += '</ul>';
+            }
+
+            if (data.validationErrors && data.validationErrors.length > 0) {
+                html += '<h4>Validation Errors:</h4>';
+                html += '<ul>';
+                data.validationErrors.forEach(error => {
+                    html += `<li style="color: red;">${error}</li>`;
+                });
+                html += '</ul>';
+            }
+
+            showResult(html, 'success');
+        }
+
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = message;
+            resultDiv.className = `result ${type}`;
+            resultDiv.style.display = 'block';
+        }
+
+        function clearResults() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'none';
+            document.getElementById('csvFile').value = '';
+        }
+    </script>
+</body>
+</html>
