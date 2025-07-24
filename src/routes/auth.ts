@@ -2,6 +2,7 @@ import express from 'express';
 import { AuthController } from '../controllers/authController';
 import { validateRequest } from '../middleware/validation';
 import { userLoginSchema, userCreateSchema } from '../middleware/validation';
+import { authenticateToken } from '../middleware/auth';
 
 const router = express.Router();
 const authController = new AuthController();
@@ -16,7 +17,7 @@ router.post('/register', validateRequest(userCreateSchema), authController.regis
 router.post('/logout', authController.logout);
 
 // GET /api/auth/me
-router.get('/me', authController.getProfile);
+router.get('/me', authenticateToken, authController.getProfile);
 
 // POST /api/auth/refresh
 router.post('/refresh', authController.refreshToken);
