@@ -3,9 +3,23 @@ import { AttendanceController } from '../controllers/attendanceController';
 import { validateRequest, validateParams, validateQuery } from '../middleware/validation';
 import { objectIdSchema, paginationSchema } from '../middleware/validation';
 import { authorizeRoles } from '../middleware/auth';
+import { uploadCSV } from '../utils/multerConfig';
 
 const router = express.Router();
 const attendanceController = new AttendanceController();
+
+// GET /api/attendance/csv-template
+router.get('/csv-template',
+  authorizeRoles('admin', 'teacher', 'staff'),
+  attendanceController.downloadCSVTemplate
+);
+
+// POST /api/attendance/bulk-upload
+router.post('/bulk-upload',
+  authorizeRoles('admin', 'teacher', 'staff'),
+  uploadCSV.single('csvFile'),
+  attendanceController.bulkUploadAttendance
+);
 
 // GET /api/attendance
 router.get('/', validateQuery(paginationSchema), attendanceController.getAttendance);

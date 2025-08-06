@@ -11,19 +11,19 @@ import path from 'path';
 export class StudentController {
   
   getStudents = asyncHandler(async (req: Request, res: Response) => {
-    const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
+    const { page = 1, limit = 10 } = req.query;
     const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
-    
+
     const db = getDB();
     const students = await db.collection<Student>('students')
-      .find({ isActive: true })
-      .sort({ [sortBy as string]: sortOrder === 'asc' ? 1 : -1 })
+      .find({})
+      .sort({ rollNumber: 1 })
       .skip(skip)
       .limit(parseInt(limit as string))
       .toArray();
-    
-    const total = await db.collection<Student>('students').countDocuments({ isActive: true });
-    
+
+    const total = await db.collection<Student>('students').countDocuments({});
+
     res.json({
       success: true,
       data: {

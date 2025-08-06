@@ -26,6 +26,7 @@ export class TeacherController {
     
     const teachers = await db.collection<Teacher>('teachers')
       .find()
+      .sort({ teacherId: 1 })
       .skip(skip)
       .limit(limit)
       .toArray();
