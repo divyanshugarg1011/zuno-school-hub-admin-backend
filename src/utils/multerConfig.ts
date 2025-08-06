@@ -34,6 +34,8 @@ const csvStorage = multer.diskStorage({
       prefix = 'students';
     } else if (req.originalUrl.includes('/fees/')) {
       prefix = 'fees';
+    } else if (req.originalUrl.includes('/attendance/')) {
+      prefix = 'attendance';
     }
     cb(null, `${prefix}-${uniqueSuffix}.csv`);
   }

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { ObjectId} from 'mongodb';
 import { getDB } from '../config/database';
 import { User, UserCreateDto, UserLoginDto } from '../models/User';
 import { createError, asyncHandler } from '../middleware/errorHandler';
@@ -98,12 +99,19 @@ export class AuthController {
 
   getProfile = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const db = getDB();
-    const user = await db.collection<User>('users').findOne({ _id: req.user?.id });
-    
+    let userId = req.user?.id;
+    // Convert string id to ObjectId if necessary
+    if (userId && typeof userId === 'string') {
+      try {
+        userId = new ObjectId(userId);
+      } catch (err) {
+        // fallback: use as is
+      }
+    }
+    const user = await db.collection<User>('users').findOne({ _id: userId });
     if (!user) {
       throw createError('User not found', 404);
     }
-    
     res.json({
       success: true,
       data: {
